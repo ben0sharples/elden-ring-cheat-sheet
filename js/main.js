@@ -418,13 +418,64 @@ var profilesKey = 'darksouls3_profiles';
         calculateTotals();
     }
 
-    function calculateTotals() {
+    /* function calculateTotals() {
         $('[id$="_overall_total"]').each(function(index) {
             var type = this.id.match(/(.*)_overall_total/)[1];
             var overallCount = 0, overallChecked = 0;
             $('[id^="' + type + '_totals_"]').each(function(index) {
                 var regex = new RegExp(type + '_totals_(.*)');
                 var regexFilter = new RegExp('^playthrough_(.*)');
+                var i = parseInt(this.id.match(regex)[1]);
+                var count = 0, checked = 0;
+                for (var j = 1; ; j++) {
+                    var checkbox = $('#' + type + '_' + i + '_' + j);
+                    if (checkbox.length === 0) {
+                        break;
+                    }
+                    if (checkbox.is(':hidden') && checkbox.prop('id').match(regexFilter) && canFilter(checkbox.closest('li'))) {
+                        continue;
+                    }
+                    count++;
+                    overallCount++;
+                    if (checkbox.prop('checked')) {
+                        checked++;
+                        overallChecked++;
+                    }
+                }
+                if (checked === count) {
+                    this.innerHTML = $('#' + type + '_nav_totals_' + i)[0].innerHTML = 'DONE';
+                    $(this).removeClass('in_progress').addClass('done');
+                    $(this).parent('h3').addClass('completed');// Hide heading for completed category
+                    $($('#' + type + '_nav_totals_' + i)[0]).removeClass('in_progress').addClass('done');
+                } else {
+                    this.innerHTML = $('#' + type + '_nav_totals_' + i)[0].innerHTML =  checked + '/' + count;
+                    $(this).removeClass('done').addClass('in_progress');
+                    $(this).parent('h3').removeClass('completed');// Show heading for not yet completed category
+                    $($('#' + type + '_nav_totals_' + i)[0]).removeClass('done').addClass('in_progress');
+                }
+                $(this).parent('h3').next('div').children('h4').addClass('completed');// Hide all subheadings...
+                $(this).parent('h3').next('div').children('ul').children('li').children('div').children('label:not(.completed)').parent('div').parent('li').parent('ul').prev('h4').removeClass('completed');// ... except those where not all entries below the subheading are labeled as completed
+            });
+            if (overallChecked === overallCount) {
+                this.innerHTML = 'DONE';
+                $(this).removeClass('in_progress').addClass('done');
+            } else {
+                this.innerHTML = overallChecked + '/' + overallCount;
+                $(this).removeClass('done').addClass('in_progress');
+            }
+        // Update textarea for profile export
+        document.getElementById("profileText").value = JSON.stringify(profiles);
+        });
+    } */
+
+    function calculateTotals() {
+        $('[id$="_overall_total"]').each(function(index) { //Finds the categories for which we have a "type"_overall_total
+            var type = this.id.match(/(.*)_overall_total/)[1]; //Assigns the first word in the id to var type
+            var overallCount = 0, overallChecked = 0; //Sets up counting variables for overall count (total that have been looped over) and overall checked (amount that were checked off)
+            $('[id^="' + type + '_totals_"]').each(function(index) { //Finds the ids where we have "type"_totals_X
+                var regex = new RegExp(type + '_totals_(.*)');
+                //Instead of counting ALL of the possible entries immediately, we want to do it by looping over subtotals and setting them as we go too
+                var regexFilter = new RegExp('^playthrough_(.*)'); //"^" forces start of line, can do "^playthrough_(.*)_" with extra underscore to retrieve only first number
                 var i = parseInt(this.id.match(regex)[1]);
                 var count = 0, checked = 0;
                 for (var j = 1; ; j++) {
